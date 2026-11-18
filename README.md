@@ -1,56 +1,48 @@
-# Welcome to your Expo app 👋
+# Nitrate (mobile)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+O app do Nitrate para iOS e Android, feito com Expo (SDK 58) e Expo Router. Usa o mesmo backend e os mesmos endpoints do Nitrate web.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Rodando
 
 ```bash
-npm run reset-project
+bun install
+bunx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+O app fala com o backend do Nitrate. Sem configuração, em desenvolvimento ele usa o IP da máquina que roda o Metro na porta `8080` (o celular não enxerga o `localhost` do computador). Para apontar para outro servidor, crie um `.env`:
 
-### Other setup steps
+```bash
+EXPO_PUBLIC_API_URL=https://sua-api.exemplo.com
+# opcional: endereço do Nitrate web, usado nos links de compartilhar
+EXPO_PUBLIC_WEB_URL=https://seu-nitrate.exemplo.com
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+> `expo-secure-store` e `expo-haptics` têm código nativo incluído no Expo Go. Se adicionar outra biblioteca nativa, gere um development build (`bunx expo run:ios`, `bunx expo run:android` ou `bunx eas-cli build --profile development`).
 
-## Learn more
+## Telas
 
-To learn more about developing your project with Expo, look at the following resources:
+- **Entrar / Criar conta**: login por e-mail ou usuário, checagem de usuário disponível, mostrar senha.
+- **Início**: o que os amigos (ou a comunidade) assistiram, gostos parecidos, recomendações, watchlist com sorteio de "o que assistir", reviews, em alta e catálogo.
+- **Buscar**: filmes (TMDB), pessoas e perfis; sem busca, o catálogo paginado.
+- **Amigos**: feed de atividade paginado e sugestões de perfis com gosto parecido.
+- **Perfil**: favoritos, contadores, diário, reviews, watchlist e listas; seguidores e seguindo.
+- **Filme**: cena de fundo, nota rápida em meias estrelas, curtir, watchlist, adicionar à lista, histograma das notas, elenco, ficha técnica, onde assistir e reviews.
+- **Registrar / editar review**: nota, curtida, data, reassistido, texto com negrito/itálico/citação e spoiler.
+- **Review**: texto formatado, curtidas e comentários.
+- **Pessoa**, **Lista**, **Radar de estreias** (notificações) e **Configurações** (perfil e sair).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Estrutura
 
-## Join the community
+- `src/app/`: rotas (Expo Router). `(tabs)/` são as abas nativas; o resto abre por cima delas.
+- `src/components/`: componentes de interface.
+- `src/lib/`: API (`api.ts`, `services.ts`), tipos, sessão (`auth-store.ts`), formatação e o parser das reviews.
 
-Join our community of developers creating universal apps.
+Estilo com NativeWind, usando a paleta do Nitrate web (`tailwind.config.js` e `src/lib/theme.ts`). Dados com TanStack Query; sessão com Zustand e o token no SecureStore.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Verificação
+
+```bash
+bun run typecheck
+bun run lint
+bunx expo-doctor
+```
