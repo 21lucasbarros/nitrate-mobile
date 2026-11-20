@@ -42,6 +42,8 @@ const enc = encodeURIComponent;
 
 export const login = (data: LoginRequest) => post<AuthResponse>('/auth/login', data);
 export const register = (data: RegisterRequest) => post<AuthResponse>('/auth/register', data);
+/** o backend responde 204 com ou sem conta para o e-mail; o link do e-mail abre o Nitrate web */
+export const requestPasswordReset = (email: string) => post<void>('/auth/forgot-password', { email });
 export const checkUsernameAvailability = (username: string) =>
   get<{ available: boolean }>('/auth/check-username', { username });
 
@@ -88,6 +90,9 @@ export const removeFromWatchlist = (movieId: number) => del<void>(`/watchlist/${
 
 export const getMe = () => get<UserProfile>('/users/me');
 export const updateMyProfile = (data: ProfileUpdate) => put<UserProfile>('/users/me/profile', data);
+/** o backend derruba as outras sessões e devolve um token novo para este aparelho */
+export const changeMyPassword = (currentPassword: string, newPassword: string) =>
+  put<AuthResponse>('/users/me/password', { currentPassword, newPassword });
 export const getMyNotifications = () => get<AppNotification[]>('/users/me/notifications');
 export const getUnreadNotificationsCount = () => get<{ count: number }>('/users/me/notifications/unread-count');
 export const markNotificationsRead = () => post<void>('/users/me/notifications/read');

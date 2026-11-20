@@ -45,6 +45,7 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  acceptedTerms: boolean; // idade mínima + Termos e Política de Privacidade
 }
 
 export interface AuthResponse {
@@ -83,6 +84,7 @@ export interface SimilarUser extends UserSummary {
 
 export interface ProfileUpdate {
   name: string;
+  username: string;
   bio: string;
   twitter: string;
   instagram: string;

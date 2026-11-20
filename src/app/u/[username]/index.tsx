@@ -9,7 +9,7 @@ export default function UserProfileScreen() {
   return (
     <>
       <Stack.Screen options={{ title: `@${username}` }} />
-      <ProfileView username={username} own={me?.username === username} />
+      <ProfileView username={username} own={!!me && me.username.toLowerCase() === username.toLowerCase()} />
     </>
   );
 }
