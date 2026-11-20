@@ -3,13 +3,14 @@ import { Link } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 
+import { Avatar } from '@/components/avatar';
 import { Poster } from '@/components/poster';
 import { EmptyText, ErrorState, Loading } from '@/components/ui';
 import { timeAgo } from '@/lib/format';
 import { getMyNotifications, markNotificationsRead } from '@/lib/services';
 import type { AppNotification } from '@/lib/types';
 
-/** Radar de estreias: filmes da watchlist que chegaram aos cinemas ou ao streaming */
+/** Radar de estreias (filmes da watchlist que chegaram aos cinemas ou ao streaming) e seguidores novos */
 export default function NotificationsScreen() {
   const queryClient = useQueryClient();
   const notifications = useQuery({ queryKey: ['notifications', 'all'], queryFn: getMyNotifications });
@@ -44,6 +45,26 @@ export default function NotificationsScreen() {
 }
 
 function NotificationRow({ notification: n }: { notification: AppNotification }) {
+  if (n.type === 'FOLLOW') {
+    return (
+      <Link href={`/u/${n.actor.username}`} asChild>
+        <Pressable className={`flex-row items-center gap-4 border-b border-foreground/5 px-5 py-4 active:bg-surface ${n.read ? '' : 'bg-brand-orange/5'}`}>
+          <View className="w-12 items-center">
+            <Avatar name={n.actor.name} username={n.actor.username} size="md" />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="text-[15px] text-foreground" numberOfLines={2}>
+              <Text className="font-semibold">{n.actor.name}</Text> começou a seguir você.
+            </Text>
+            <Text className="mt-0.5 text-xs text-brand-slate">@{n.actor.username}</Text>
+            <Text className="mt-1 text-xs text-brand-slate/60">{timeAgo(n.createdAt)}</Text>
+          </View>
+          {!n.read && <View className="h-2 w-2 rounded-full bg-brand-orange" />}
+        </Pressable>
+      </Link>
+    );
+  }
+
   const cinema = n.type === 'CINEMA';
   return (
     <Link href={`/filme/${n.movie.id}`} asChild>

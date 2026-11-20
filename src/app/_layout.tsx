@@ -75,6 +75,8 @@ export default function RootLayout() {
               <Stack.Screen name="notificacoes" options={{ title: 'Radar de estreias' }} />
               <Stack.Screen name="configuracoes" options={{ title: 'Configurações' }} />
               <Stack.Screen name="registrar" options={{ presentation: 'modal', title: '' }} />
+              <Stack.Screen name="favoritos-pessoas" options={{ presentation: 'modal', title: '' }} />
+              <Stack.Screen name="compartilhar-story" options={{ presentation: 'modal', title: 'Compartilhar nos Stories' }} />
               <Stack.Screen name="adicionar-a-lista" options={{ presentation: 'formSheet', title: 'Adicionar à lista', sheetAllowedDetents: [0.6, 1] }} />
             </Stack.Protected>
             <Stack.Protected guard={!signedIn}>

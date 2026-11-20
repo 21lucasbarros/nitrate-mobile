@@ -88,14 +88,17 @@ export interface ProfileUpdate {
   instagram: string;
 }
 
-export interface AppNotification {
+// estreias do radar (com `movie`) ou alguém que começou a seguir (com `actor`)
+interface NotificationBase {
   id: number;
-  type: 'CINEMA' | 'STREAMING';
   detail: string | null;
   createdAt: string;
   read: boolean;
-  movie: Movie;
 }
+
+export type AppNotification =
+  | (NotificationBase & { type: 'CINEMA' | 'STREAMING'; movie: Movie; actor: null })
+  | (NotificationBase & { type: 'FOLLOW'; movie: null; actor: UserSummary });
 
 // ---------- reviews ----------
 
@@ -225,6 +228,21 @@ export interface PersonDetail {
   directed: PersonCredit[];
   acted: PersonCredit[];
 }
+
+/** ator/atriz ou diretor(a) favorito no perfil */
+export interface FavoritePerson {
+  tmdbId: number;
+  name: string;
+  profilePath: string | null;
+}
+
+/** as duas listas, cada uma na ordem escolhida */
+export interface FavoritePeople {
+  actors: FavoritePerson[];
+  directors: FavoritePerson[];
+}
+
+export type FavoritePeopleKind = keyof FavoritePeople;
 
 // ---------- listas ----------
 

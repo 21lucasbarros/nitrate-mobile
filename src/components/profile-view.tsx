@@ -1,30 +1,42 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import * as WebBrowser from 'expo-web-browser';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Platform, Pressable, RefreshControl, Text, useWindowDimensions, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { monthYear, shortDate, toRating } from '@/lib/format';
-import { getProfile, getUserLists, getUserReviews, getUserWatchlist } from '@/lib/services';
+import { getFavoritePeople, getProfile, getUserLists, getUserReviews, getUserWatchlist } from '@/lib/services';
 import { colors } from '@/lib/theme';
-import type { Movie, MovieList, MovieReview, UserProfile } from '@/lib/types';
+import type { FavoritePeople, Movie, MovieList, MovieReview, UserProfile } from '@/lib/types';
 
 import { Avatar } from './avatar';
+import { FAVORITE_PEOPLE_LABELS, FavoritePeopleRow } from './favorite-people';
 import { FollowButton } from './people';
 import { Poster } from './poster';
 import { ReviewCard } from './review-card';
 import { StarRating } from './stars';
-import { EmptyText, ErrorState, Loading, Segmented } from './ui';
+import { EmptyText, ErrorState, Loading, SectionHeading, Segmented } from './ui';
 
-type Tab = 'diario' | 'reviews' | 'watchlist' | 'listas';
+type Tab = 'diario' | 'reviews' | 'watchlist' | 'listas' | 'favoritos';
 
 type Row =
   | { kind: 'diary'; review: MovieReview }
   | { kind: 'review'; review: MovieReview }
   | { kind: 'posters'; key: string; movies: Movie[] }
-  | { kind: 'list'; list: MovieList };
+  | { kind: 'list'; list: MovieList }
+  | { kind: 'favorites'; people: FavoritePeople };
 
 const PAGE_SIZE = 20;
 const COLUMNS = 3;
@@ -56,6 +68,11 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
     enabled: tab === 'watchlist',
   });
   const lists = useQuery({ queryKey: ['lists', username], queryFn: () => getUserLists(username), enabled: tab === 'listas' });
+  const favoritePeople = useQuery({
+    queryKey: ['favorite-people', username],
+    queryFn: () => getFavoritePeople(username),
+    enabled: tab === 'favoritos',
+  });
 
   if (profile.isPending) return <Loading hint />;
   if (profile.isError) return <ErrorState message="Perfil não encontrado." onRetry={() => profile.refetch()} />;
@@ -75,9 +92,12 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
       rows.push({ kind: 'posters', key: `w-${i}`, movies: movies.slice(i, i + COLUMNS) });
     }
     loading = watchlist.isPending;
-  } else {
+  } else if (tab === 'listas') {
     rows = (lists.data ?? []).map((list) => ({ kind: 'list', list }));
     loading = lists.isPending;
+  } else {
+    rows = favoritePeople.data ? [{ kind: 'favorites', people: favoritePeople.data }] : [];
+    loading = favoritePeople.isPending;
   }
 
   const emptyText = {
@@ -85,6 +105,7 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
     reviews: 'Nenhuma review escrita ainda.',
     watchlist: 'A watchlist está vazia.',
     listas: 'Nenhuma lista criada ainda.',
+    favoritos: 'Não foi possível carregar os favoritos.',
   }[tab];
 
   const refresh = () => {
@@ -92,13 +113,20 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
     if (tab === 'diario' || tab === 'reviews') diary.refetch();
     if (tab === 'watchlist') watchlist.refetch();
     if (tab === 'listas') lists.refetch();
+    if (tab === 'favoritos') favoritePeople.refetch();
   };
 
   return (
     <FlatList
       data={rows}
       keyExtractor={(row) =>
-        row.kind === 'posters' ? row.key : row.kind === 'list' ? `l-${row.list.id}` : `${row.kind}-${row.review.id}`
+        row.kind === 'posters'
+          ? row.key
+          : row.kind === 'list'
+            ? `l-${row.list.id}`
+            : row.kind === 'favorites'
+              ? 'favorites'
+              : `${row.kind}-${row.review.id}`
       }
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingTop: inTab && Platform.OS !== 'ios' ? insets.top : 0, paddingBottom: 48 }}
@@ -106,7 +134,11 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
       ListHeaderComponent={
         <View>
           <ProfileHeader user={user} own={own} inTab={inTab} />
-          <View className="px-5 pb-2 pt-8">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="pb-2 pt-8"
+            contentContainerStyle={{ paddingHorizontal: 20 }}>
             <Segmented
               value={tab}
               onChange={setTab}
@@ -115,9 +147,10 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
                 { value: 'reviews', label: 'Reviews' },
                 { value: 'watchlist', label: 'Watchlist' },
                 { value: 'listas', label: 'Listas' },
+                { value: 'favoritos', label: 'Favoritos' },
               ]}
             />
-          </View>
+          </ScrollView>
         </View>
       }
       renderItem={({ item: row }) => {
@@ -140,6 +173,8 @@ export function ProfileView({ username, own, inTab }: ProfileViewProps) {
             );
           case 'list':
             return <ListRow list={row.list} />;
+          case 'favorites':
+            return <FavoritesTab user={user} people={row.people} own={own} />;
         }
       }}
       onEndReachedThreshold={0.5}
@@ -234,6 +269,55 @@ function ProfileHeader({ user, own, inTab }: { user: UserProfile; own: boolean; 
           </View>
         </View>
       )}
+    </View>
+  );
+}
+
+/** filmes, atores e diretores favoritos; no próprio perfil, cada bloco abre o editor */
+function FavoritesTab({ user, people, own }: { user: UserProfile; people: FavoritePeople; own: boolean }) {
+  const router = useRouter();
+  const edit = (tipo: keyof FavoritePeople) => router.push({ pathname: '/favoritos-pessoas', params: { tipo } });
+
+  return (
+    <View className="gap-10 px-5 pt-6">
+      <View>
+        <SectionHeading title="Filmes favoritos" />
+        {user.favorites.length > 0 ? (
+          <View className="flex-row gap-2">
+            {user.favorites.map((m) => (
+              <View key={m.id} className="flex-1">
+                <Poster title={m.title} posterPath={m.posterPath} size="w185" href={`/filme/${m.id}`} />
+              </View>
+            ))}
+            {Array.from({ length: 5 - user.favorites.length }, (_, i) => (
+              <View key={`empty-${i}`} className="flex-1" />
+            ))}
+          </View>
+        ) : (
+          <EmptyText>{own ? 'Você ainda não escolheu filmes favoritos.' : `${user.name} ainda não escolheu filmes favoritos.`}</EmptyText>
+        )}
+      </View>
+      {(['actors', 'directors'] as const).map((kind) => (
+        <View key={kind}>
+          <SectionHeading
+            title={FAVORITE_PEOPLE_LABELS[kind].title}
+            right={
+              own && people[kind].length > 0 ? (
+                <Pressable onPress={() => edit(kind)} hitSlop={10}>
+                  <Text className="text-sm text-brand-slate">Editar</Text>
+                </Pressable>
+              ) : undefined
+            }
+          />
+          {people[kind].length > 0 || own ? (
+            <FavoritePeopleRow kind={kind} people={people[kind]} own={own} onEdit={() => edit(kind)} />
+          ) : (
+            <EmptyText>
+              {user.name} ainda não escolheu {FAVORITE_PEOPLE_LABELS[kind].plural} favoritos.
+            </EmptyText>
+          )}
+        </View>
+      ))}
     </View>
   );
 }

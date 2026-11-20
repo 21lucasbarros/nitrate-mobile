@@ -4,6 +4,9 @@ import type {
   ActivityPage,
   AppNotification,
   AuthResponse,
+  FavoritePeople,
+  FavoritePeopleKind,
+  FavoritePerson,
   LoginRequest,
   Movie,
   MovieCredits,
@@ -93,6 +96,11 @@ export const getMovieState = (movieId: number) => get<MovieUserState>(`/users/me
 export const getMyFeed = (limit: number) => get<MovieReview[]>('/users/me/feed', { limit });
 export const getSimilarUsers = () => get<SimilarUser[]>('/users/me/similar');
 export const setMyFavorites = (movieIds: number[]) => put<Movie[]>('/users/me/favorites', { movieIds });
+export const MAX_FAVORITE_PEOPLE = 5;
+export const getFavoritePeople = (username: string) => get<FavoritePeople>(`/users/${enc(username)}/favorites/people`);
+/** substitui a lista inteira (atores ou diretores); a ordem do array é a ordem do perfil */
+export const setMyFavoritePeople = (kind: FavoritePeopleKind, tmdbIds: number[]) =>
+  put<FavoritePerson[]>(`/users/me/favorites/${kind}`, { tmdbIds });
 export const getProfile = (username: string) => get<UserProfile>(`/users/${enc(username)}`);
 export const getUserReviews = (username: string, page: number, size: number, withText = false) =>
   get<Page<MovieReview>>(`/users/${enc(username)}/reviews`, { page, size, withText });

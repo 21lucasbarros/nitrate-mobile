@@ -17,3 +17,9 @@ export const API_BASE_URL = (
 
 /** endereço do Nitrate web, para compartilhar links; sem ele, compartilha só o texto */
 export const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL?.replace(/\/+$/, '') || null;
+
+/**
+ * ID do app na Meta (developers.facebook.com), exigido pelo Instagram para abrir o Stories
+ * já com a figurinha. Sem ele, a figurinha vai pela folha de compartilhar do sistema.
+ */
+export const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID || null;

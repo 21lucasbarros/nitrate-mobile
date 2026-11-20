@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Link, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActionSheetIOS, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
@@ -24,6 +24,7 @@ import {
   likeReview,
   unlikeReview,
 } from '@/lib/services';
+import { canShareStories } from '@/lib/story-share';
 import { colors } from '@/lib/theme';
 import type { ReviewEngagement } from '@/lib/types';
 
@@ -90,6 +91,27 @@ export default function ReviewScreen() {
   const hideText = r.spoiler && !isOwn && !revealed;
   const liked = engagement.data?.likedByMe ?? false;
 
+  const edit = () => router.push({ pathname: '/registrar', params: { movieId: String(r.movie.id), reviewId: String(r.id) } });
+  const shareStory = () =>
+    router.push({ pathname: '/compartilhar-story', params: { movieId: String(r.movie.id), reviewId: String(r.id) } });
+
+  // no web não há figurinha: o menu vira só o editar
+  const openMenu = () => {
+    if (!canShareStories) return edit();
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: ['Compartilhar nos Stories', 'Editar review', 'Cancelar'], cancelButtonIndex: 2 },
+        (index) => (index === 0 ? shareStory() : index === 1 ? edit() : undefined),
+      );
+    } else {
+      Alert.alert('Sua review', undefined, [
+        { text: 'Compartilhar nos Stories', onPress: shareStory },
+        { text: 'Editar review', onPress: edit },
+        { text: 'Cancelar', style: 'cancel' },
+      ]);
+    }
+  };
+
   const confirmDelete = (commentId: number) =>
     confirmAction('Apagar comentário?', undefined, 'Apagar', () => remove.mutate(commentId));
 
@@ -99,10 +121,8 @@ export default function ReviewScreen() {
         <Stack.Screen
           options={{
             headerRight: () => (
-              <Pressable
-                onPress={() => router.push({ pathname: '/registrar', params: { movieId: String(r.movie.id), reviewId: String(r.id) } })}
-                hitSlop={10}>
-                <Text className="text-base text-brand-orange">Editar</Text>
+              <Pressable onPress={openMenu} hitSlop={10} accessibilityLabel="Mais opções">
+                <Ionicons name="ellipsis-horizontal-circle-outline" size={24} color={colors.foreground} />
               </Pressable>
             ),
           }}

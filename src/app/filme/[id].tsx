@@ -19,6 +19,7 @@ import { WEB_URL } from '@/lib/config';
 import { formatScore, plural, shortDate, todayIso, toRating } from '@/lib/format';
 import { useInvalidateMovie } from '@/lib/hooks';
 import { backdropUrl, logoUrl } from '@/lib/images';
+import { canShareStories } from '@/lib/story-share';
 import {
   addToWatchlist,
   createReview,
@@ -59,6 +60,7 @@ function FilmView({ film }: { film: Movie }) {
   const providers = useQuery({ queryKey: ['movie-providers', film.id], queryFn: () => getWatchProviders(film.id) });
   const myState = useQuery({ queryKey: ['movie-state', film.id], queryFn: () => getMovieState(film.id) });
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const router = useRouter();
 
   const backdrop = backdropUrl(credits.data?.backdropPath);
   const directors = credits.data?.directors ?? [];
@@ -77,9 +79,19 @@ function FilmView({ film }: { film: Movie }) {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={share} hitSlop={10} accessibilityLabel="Compartilhar">
-              <Ionicons name="share-outline" size={22} color={colors.foreground} />
-            </Pressable>
+            <View className="flex-row items-center gap-5">
+              {canShareStories && (
+                <Pressable
+                  onPress={() => router.push({ pathname: '/compartilhar-story', params: { movieId: String(film.id) } })}
+                  hitSlop={10}
+                  accessibilityLabel="Compartilhar nos Stories">
+                  <Ionicons name="logo-instagram" size={21} color={colors.foreground} />
+                </Pressable>
+              )}
+              <Pressable onPress={share} hitSlop={10} accessibilityLabel="Compartilhar">
+                <Ionicons name="share-outline" size={22} color={colors.foreground} />
+              </Pressable>
+            </View>
           ),
         }}
       />
