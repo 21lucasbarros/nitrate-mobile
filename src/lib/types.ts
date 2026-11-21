@@ -90,7 +90,7 @@ export interface ProfileUpdate {
   instagram: string;
 }
 
-// estreias do radar (com `movie`) ou alguém que começou a seguir (com `actor`)
+// estreias do radar (com `movie` ou `series`) ou alguém que começou a seguir (com `actor`)
 interface NotificationBase {
   id: number;
   detail: string | null;
@@ -98,9 +98,18 @@ interface NotificationBase {
   read: boolean;
 }
 
+// o app ainda não tem páginas de série: só o que o aviso mostra
+export interface NotificationSeries {
+  id: number;
+  name: string;
+  posterPath: string | null;
+}
+
 export type AppNotification =
-  | (NotificationBase & { type: 'CINEMA' | 'STREAMING'; movie: Movie; actor: null })
-  | (NotificationBase & { type: 'FOLLOW'; movie: null; actor: UserSummary });
+  | (NotificationBase & { type: 'CINEMA' | 'STREAMING'; movie: Movie; series: null; seasonNumber: null; actor: null })
+  | (NotificationBase & { type: 'SERIES_PREMIERE'; movie: null; series: NotificationSeries; seasonNumber: null; actor: null })
+  | (NotificationBase & { type: 'SERIES_SEASON'; movie: null; series: NotificationSeries; seasonNumber: number; actor: null })
+  | (NotificationBase & { type: 'FOLLOW'; movie: null; series: null; seasonNumber: null; actor: UserSummary });
 
 // ---------- reviews ----------
 

@@ -10,7 +10,7 @@ import { timeAgo } from '@/lib/format';
 import { getMyNotifications, markNotificationsRead } from '@/lib/services';
 import type { AppNotification } from '@/lib/types';
 
-/** Radar de estreias (filmes da watchlist que chegaram aos cinemas ou ao streaming) e seguidores novos */
+/** Radar de estreias (filmes da watchlist que chegaram aos cinemas ou ao streaming, séries que estrearam) e seguidores novos */
 export default function NotificationsScreen() {
   const queryClient = useQueryClient();
   const notifications = useQuery({ queryKey: ['notifications', 'all'], queryFn: getMyNotifications });
@@ -36,7 +36,7 @@ export default function NotificationsScreen() {
       ListEmptyComponent={
         <View className="px-5 py-8">
           <EmptyText>
-            Nada por enquanto. Quando um filme da sua watchlist estrear nos cinemas ou chegar ao streaming, avisamos aqui.
+            Nada por enquanto. Quando um filme ou uma série da sua watchlist estrear, ou uma série que você acompanha ganhar temporada nova, avisamos aqui.
           </EmptyText>
         </View>
       }
@@ -62,6 +62,26 @@ function NotificationRow({ notification: n }: { notification: AppNotification })
           {!n.read && <View className="h-2 w-2 rounded-full bg-brand-orange" />}
         </Pressable>
       </Link>
+    );
+  }
+
+  // sem página de série no app: o aviso aparece, mas não leva a lugar nenhum
+  if (n.type === 'SERIES_PREMIERE' || n.type === 'SERIES_SEASON') {
+    return (
+      <View className={`flex-row items-center gap-4 border-b border-foreground/5 px-5 py-4 ${n.read ? '' : 'bg-brand-orange/5'}`}>
+        <Poster title={n.series.name} posterPath={n.series.posterPath} width={48} size="w185" />
+        <View className="min-w-0 flex-1">
+          <Text className="font-serif text-[17px] text-foreground" numberOfLines={1}>
+            {n.series.name}
+          </Text>
+          <Text className="mt-0.5 text-sm text-foreground/80">
+            {n.type === 'SERIES_SEASON' ? `Ganhou a ${n.seasonNumber}ª temporada.` : 'Estreou.'}
+          </Text>
+          {n.detail && <Text className="mt-0.5 text-xs text-brand-slate">{n.detail}</Text>}
+          <Text className="mt-1 text-xs text-brand-slate/60">{timeAgo(n.createdAt)}</Text>
+        </View>
+        {!n.read && <View className="h-2 w-2 rounded-full bg-brand-orange" />}
+      </View>
     );
   }
 
