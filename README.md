@@ -46,3 +46,7 @@ bun run typecheck
 bun run lint
 bunx expo-doctor
 ```
+
+## Licença
+
+Copyright (c) 2026 Lucas Barros Simon. Todos os direitos reservados. O código está público apenas para consulta; copiar, modificar, redistribuir ou usar qualquer parte dele sem autorização por escrito é proibido. Veja o arquivo [LICENSE](LICENSE).
