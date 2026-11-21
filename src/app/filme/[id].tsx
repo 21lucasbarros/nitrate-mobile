@@ -33,7 +33,7 @@ import {
   updateReview,
 } from '@/lib/services';
 import { colors } from '@/lib/theme';
-import type { CreditPerson, Movie, MovieStats, MovieUserState, ReviewRequest, WatchProviders } from '@/lib/types';
+import { canRate, type CreditPerson, type Movie, type MovieStats, type MovieUserState, type ReviewRequest, type WatchProviders } from '@/lib/types';
 
 export default function FilmScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -253,7 +253,14 @@ function ActionPanel({ film, state }: { film: Movie; state: MovieUserState }) {
       <View className="p-5">
         <Text className="text-[11px] uppercase tracking-[2px] text-brand-slate">Sua nota</Text>
         <View className="mt-3">
-          <StarInput value={review?.rating ?? null} onChange={(rating) => quickSave.mutate({ rating })} disabled={quickSave.isPending} />
+          {canRate(film) ? (
+            <StarInput value={review?.rating ?? null} onChange={(rating) => quickSave.mutate({ rating })} disabled={quickSave.isPending} />
+          ) : (
+            // antes da estreia: dá para registrar e curtir, a nota só depois
+            <Text className="text-sm text-brand-slate">
+              {film.releaseDate ? `Liberada na estreia, em ${shortDate(film.releaseDate)}.` : 'Liberada quando o filme estrear.'}
+            </Text>
+          )}
         </View>
         {review?.watchedOn && (
           <View className="mt-4 flex-row items-center gap-1.5">

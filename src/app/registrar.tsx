@@ -15,7 +15,7 @@ import { useInvalidateMovie } from '@/lib/hooks';
 import { toggleBold, toggleItalic, toggleQuote, type TextState } from '@/lib/review-markup';
 import { createReview, deleteReview, getMovie, getMovieState, getReview, updateReview } from '@/lib/services';
 import { colors } from '@/lib/theme';
-import type { Movie, MovieReview } from '@/lib/types';
+import { canRate, type Movie, type MovieReview } from '@/lib/types';
 
 const TEXT_MAX = 20000; // igual ao limite do backend
 
@@ -47,7 +47,9 @@ export default function LogScreen() {
 function ReviewForm({ movie, existing, previouslyWatched }: { movie: Movie; existing: MovieReview | null; previouslyWatched: boolean }) {
   const router = useRouter();
   const invalidate = useInvalidateMovie();
-  const [rating, setRating] = useState<number | null>(existing?.rating ?? null);
+  // antes da estreia a review pode ter texto e curtida, mas não nota
+  const rateable = canRate(movie);
+  const [rating, setRating] = useState<number | null>(rateable ? existing?.rating ?? null : null);
   const [liked, setLiked] = useState(existing?.liked ?? false);
   const [watchedOn, setWatchedOn] = useState(existing?.watchedOn ?? todayIso());
   const [text, setText] = useState(existing?.text ?? '');
@@ -140,7 +142,16 @@ function ReviewForm({ movie, existing, previouslyWatched }: { movie: Movie; exis
             <View className="flex-row items-end justify-between">
               <View className="gap-2">
                 <Label>Nota</Label>
-                <StarInput value={rating} onChange={setRating} size={34} />
+                {rateable ? (
+                  <StarInput value={rating} onChange={setRating} size={34} />
+                ) : (
+                  <View className="min-h-[38px] flex-row items-center gap-2">
+                    <Ionicons name="calendar-outline" size={16} color={colors.slate} />
+                    <Text className="text-sm text-brand-slate">
+                      {movie.releaseDate ? `Liberada na estreia, em ${shortDate(movie.releaseDate)}` : 'Liberada quando o filme estrear'}
+                    </Text>
+                  </View>
+                )}
               </View>
               <View className="items-center gap-2">
                 <Label>Curtir</Label>
