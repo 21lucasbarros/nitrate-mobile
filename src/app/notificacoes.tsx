@@ -85,6 +85,9 @@ function NotificationRow({ notification: n }: { notification: AppNotification })
     );
   }
 
+  // tipos que o app ainda não conhece sem filme (ex.: convite de registro de série em conjunto) ficam de fora
+  if (!n.movie) return null;
+
   const cinema = n.type === 'CINEMA';
   return (
     <Link href={`/filme/${n.movie.id}`} asChild>
