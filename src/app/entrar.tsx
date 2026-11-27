@@ -76,7 +76,7 @@ function LoginForm({ onForgot }: { onForgot: () => void }) {
   const onSubmit = handleSubmit(async (data) => {
     setError(null);
     try {
-      const response = await login({ login: data.login.trim(), password: data.password });
+      const response = await login({ login: data.login.trim(), password: data.password, rememberMe: true });
       await signIn(response.token);
     } catch (err) {
       setError(errorMessage(err, 'Não foi possível entrar. Tente novamente.'));

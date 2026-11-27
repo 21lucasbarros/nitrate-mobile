@@ -21,7 +21,7 @@ export async function clearToken(): Promise<void> {
   else await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
-// o backend emite JWT com validade de 24h; lemos o `exp` para não usar um token vencido
+// o app entra com rememberMe e o backend emite JWT de 30 dias; lemos o `exp` para não usar um token vencido
 function isTokenExpired(token: string): boolean {
   try {
     const payload = token.split('.')[1];

@@ -45,6 +45,7 @@ export interface Page<T> {
 export interface LoginRequest {
   login: string; // e-mail ou username
   password: string;
+  rememberMe?: boolean; // token de 30 dias em vez de 24h
 }
 
 export interface RegisterRequest {
